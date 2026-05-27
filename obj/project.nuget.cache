@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "4E1jhnG52qQ=",
+  "dgSpecHash": "VitDac29SSs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\PC\\Desktop\\progh - Copy\\CybersecurityBot.csproj",
+  "projectFilePath": "C:\\Users\\PC\\Documents\\GitHub\\Cybersecurity\\CybersecurityBot.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PC\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.13\\microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
     "C:\\Users\\PC\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.13\\microsoft.windowsdesktop.app.ref.9.0.13.nupkg.sha512",
