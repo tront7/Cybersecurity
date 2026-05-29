@@ -1,66 +1,107 @@
+// Import core system types used throughout this file
 using System;
+// Import platform support attributes for OS-specific APIs
 using System.Runtime.Versioning;
+// Import WPF base types like Window, RoutedEventArgs
 using System.Windows;
+// Import WPF control types such as Button, TextBox, Border
 using System.Windows.Controls;
+// Import types for inline text elements used in chat bubbles
 using System.Windows.Documents;
+// Import input-related types like KeyEventArgs
 using System.Windows.Input;
+// Import media types for brushes, colors and fonts
 using System.Windows.Media;
+// Import the dispatcher for UI thread scheduling
 using System.Windows.Threading;
 
+// Declare the namespace for the application's UI classes
 namespace CybersecurityBot
 {
+    // XML doc: describes the role of the main window's code-behind
     /// <summary>
     /// Code-behind for the WPF main window.
     /// Handles UI event wiring, message rendering, and bridges between
     /// the WPF presentation layer and the shared domain classes.
     /// </summary>
+    // Indicate this class targets Windows-only APIs
     [SupportedOSPlatform("windows")]
+    // Partial class backing the XAML-defined MainWindow
     public partial class MainWindow : Window
     {
+        // Section: session-scoped state variables
         // ── Session state ─────────────────────────────────────────────────────
 
+        // User profile captured after name entry (nullable until set)
         private UserProfile?         _user;
+        // Conversation context instance used to track topics and memory
         private readonly ConversationContext _context      = new();
+        // Flag indicating whether the user's name has been entered
         private bool                 _nameEntered  = false;
+        // Timer used to update session duration and message count display
         private readonly DispatcherTimer    _sessionTimer = new();
 
+        // Section: design tokens (colour palette) used for chat bubbles
         // ── Design tokens (colour palette) ────────────────────────────────────
 
+        // Background brush for bot chat bubbles
         private static readonly SolidColorBrush BotBubble  = Brush(22,  27,  34);
+        // Background brush for user chat bubbles
         private static readonly SolidColorBrush UserBubble = Brush(31,  41,  55);
+        // Foreground brush for bot text
         private static readonly SolidColorBrush BotText    = Brush(88,  166, 255);
+        // Foreground brush for user text
         private static readonly SolidColorBrush UserText   = Brush(230, 237, 243);
+        // Foreground brush for system / metadata text
         private static readonly SolidColorBrush SystemText = Brush(139, 148, 158);
+        // Helper to create a SolidColorBrush from RGB values
         private static SolidColorBrush Brush(byte r, byte g, byte b)
             => new(Color.FromRgb(r, g, b));
 
+        // Section: constructor and load handling
         // ── Constructor ───────────────────────────────────────────────────────
 
+        // Main window constructor
         public MainWindow()
         {
+            // Initialize XAML components
             InitializeComponent();
+            // Hook the Loaded event to perform additional setup
             Loaded += OnLoaded;
         }
 
+        // Section: initialization performed after window load
         // ── Initialisation ────────────────────────────────────────────────────
 
+        // Called when the window has finished loading
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Play an optional voice greeting
             PlayVoiceGreeting();
+            // Render the ASCII art into the left panel
             RenderAsciiArt();
+            // Populate the topic chips from the response engine
             PopulateTopicChips();
+            // Wire the conversation context activity log to the UI
             WireActivityLog();
+            // Start the session timer to update UI labels
             StartSessionTimer();
+            // Show welcome/system messages in the chat
             ShowWelcomeMessages();
+            // Focus the input box so the user can type immediately
             InputBox.Focus();
         }
 
-        // ── Voice greeting ────────────────────────────────────────────────────
+        // Section: voice greeting helper
+        // ── Voice greeting ───────────────────────────────────────────────────
 
+        // Play the predefined voice greeting asynchronously (static helper)
         private static void PlayVoiceGreeting() => VoiceGreeting.Play();
 
+        // Section: ASCII art rendering
         // ── ASCII art ─────────────────────────────────────────────────────────
 
+        // Fill the AsciiArt TextBlock with a multi-line ASCII banner
         private void RenderAsciiArt()
         {
             AsciiArt.Text =
@@ -79,20 +120,26 @@ namespace CybersecurityBot
                 "╚══════╝╚═╝╚═╝  ╚═╝╚═╝  ";
         }
 
+        // Section: topic chip creation
         // ── Topic chips ───────────────────────────────────────────────────────
 
+        // Create and attach clickable topic chips from ResponseEngine.TopicList
         private void PopulateTopicChips()
         {
             foreach (var topic in ResponseEngine.TopicList)
             {
                 var chip = new Button
                 {
+                    // Display text for the chip comes from the topic string
                     Content = topic,
+                    // Apply the TopicChip style from XAML resources
                     Style   = (Style)FindResource("TopicChip"),
                 };
 
+                // When a chip is clicked, populate input and send the topic
                 chip.Click += (_, _) =>
                 {
+                    // Require name entry before allowing topic selection
                     if (!_nameEntered)
                     {
                         AddSystemMessage("⚠  Please enter your name first before selecting a topic.");
@@ -106,12 +153,15 @@ namespace CybersecurityBot
                     SendMessage();
                 };
 
+                // Add the chip button into the topics panel
                 TopicsPanel.Children.Add(chip);
             }
         }
 
+        // Section: connect context activity events to UI logging
         // ── Activity log wiring ───────────────────────────────────────────────
 
+        // Subscribe to ConversationContext.OnActivity and append entries to the ActivityLog
         private void WireActivityLog()
         {
             _context.OnActivity += entry =>
@@ -122,8 +172,10 @@ namespace CybersecurityBot
                 });
         }
 
+        // Section: session timer logic
         // ── Session timer ─────────────────────────────────────────────────────
 
+        // Configure and start a timer that updates session duration and message count
         private void StartSessionTimer()
         {
             _sessionTimer.Interval = TimeSpan.FromSeconds(1);
@@ -136,8 +188,10 @@ namespace CybersecurityBot
             _sessionTimer.Start();
         }
 
+        // Section: initial welcome messages shown on startup
         // ── Welcome messages ──────────────────────────────────────────────────
 
+        // Add greeting and hints into the chat panel
         private void ShowWelcomeMessages()
         {
             AddBotMessage("👋 Welcome to the Cybersecurity Awareness Bot — Liam!");
@@ -148,8 +202,10 @@ namespace CybersecurityBot
                 "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         }
 
+        // Section: central message dispatch and conversation flow
         // ── Message dispatch ──────────────────────────────────────────────────
 
+        // Process the user's typed input and drive bot responses
         private void SendMessage()
         {
             string input = InputBox.Text.Trim();
@@ -173,6 +229,7 @@ namespace CybersecurityBot
                     return;
                 }
 
+                // Create the UserProfile and mark name as entered
                 _user        = new UserProfile(input);
                 _nameEntered = true;
 
@@ -201,12 +258,12 @@ namespace CybersecurityBot
             string prefix    = SentimentDetector.GetPrefix(sentiment);
             string emoji     = SentimentDetector.GetEmoji(sentiment);
 
-            // Memory recall
+            // Memory recall handling
             if (CommandHelper.IsMemoryRecall(input))
             {
                 string recap = _context.BuildMemoryRecap();
                 AddBotMessage(string.IsNullOrEmpty(recap)
-                
+
                     ? $"I haven't learned much about you yet, {_user.FormattedName}!\n" +
                       "Mention your device, browser, or a security concern and I'll remember it."
                     : $"Based on our conversation, I know that {recap}.\n" +
@@ -215,7 +272,7 @@ namespace CybersecurityBot
                 return;
             }
 
-            // Follow-up request
+            // Follow-up request handling using last topic
             if (_context.IsFollowUp(input) && !string.IsNullOrEmpty(_context.LastTopic))
             {
                 string? followUp = ResponseEngine.GetResponse(_context.LastTopic);
@@ -230,7 +287,7 @@ namespace CybersecurityBot
                 }
             }
 
-            // Standard topic response
+            // Standard topic lookup and response
             string? response = ResponseEngine.GetResponse(input);
             string? topicKey = ResponseEngine.GetMatchedTopicKey(input);
 
@@ -261,25 +318,31 @@ namespace CybersecurityBot
             }
         }
 
+        // Section: show compact summary of available topics
         // ── Topic grid summary ────────────────────────────────────────────────
 
+       // Display a single-line summary of all topics in the system
        private void ShowTopicGrid()
 {
     string summary = string.Join("    ", ResponseEngine.TopicList);
     AddSystemMessage(summary);
 }
 
+        // Section: chat bubble construction helpers
         // ── Chat bubble builders ──────────────────────────────────────────────
 
+        // Add a bot-styled message into the chat panel
         private void AddBotMessage(string text)
             => AddChatBubble($"🤖  Liam\n{text}", BotBubble, BotText, HorizontalAlignment.Left);
 
+       // Add a user-styled message into the chat panel
        private void AddUserMessage(string text)
 {
     string label = _user?.FormattedName ?? "You";   // Already safe, but maybe warning elsewhere
     AddChatBubble($"👤  {label}\n{text}", UserBubble, UserText, HorizontalAlignment.Right);
 }
 
+        // Add a centered system message (italic) into the chat panel
         private void AddSystemMessage(string text)
         {
             var block = new TextBlock
@@ -298,6 +361,7 @@ namespace CybersecurityBot
             ScrollToBottom();
         }
 
+        // Create and add a styled chat bubble to the chat panel
         private void AddChatBubble(
             string text,
             SolidColorBrush background,
@@ -348,19 +412,23 @@ namespace CybersecurityBot
             ScrollToBottom();
         }
 
+        // Scroll the chat view to the bottom asynchronously
         private void ScrollToBottom()
             => Dispatcher.InvokeAsync(
                 () => ChatScroller.ScrollToEnd(),
                 DispatcherPriority.Background);
 
+        // Section: miscellaneous helper predicates (not currently used externally)
         // ── Helpers ───────────────────────────────────────────────────────────
 
+        // Determine whether the input text is an exit command
         private static bool IsExitCommand(String input)
         {
             string t = input.Trim().ToLowerInvariant();
             return t is "exit" or "quit" or "bye";
         }
 
+        // Determine whether the input asks the bot to recall memory
         private static bool IsMemoryRecallRequest(String input)
         {
             string lower = input.ToLowerInvariant();
@@ -369,8 +437,10 @@ namespace CybersecurityBot
                 || lower.Contains("what do you remember");
         }
 
+        // Section: graceful exit sequence
         // ── Exit sequence ─────────────────────────────────────────────────────
 
+        // Show a goodbye message, log the session end, wait then shutdown
         private async void HandleExit()
         {
             string name = _user is not null ? $", {_user.FormattedName}" : string.Empty;
@@ -383,15 +453,19 @@ namespace CybersecurityBot
             Application.Current.Shutdown();
         }
 
+        // Section: UI event handlers for buttons and input
         // ── UI event handlers ─────────────────────────────────────────────────
 
+        // Click handler for the Send button that forwards to SendMessage
         private void SendButton_Click(object sender, RoutedEventArgs e) => SendMessage();
 
+        // KeyDown handler for the input box: send on Enter
         private void InputBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter) SendMessage();
         }
 
+        // Click handler for the Clear button: clear chat and re-show hints
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             ChatPanel.Children.Clear();

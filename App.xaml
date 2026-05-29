@@ -1,5 +1,10 @@
+<!-- Defines the Application class for the WPF application -->
 <Application x:Class="CybersecurityBot.App"
+             <!-- Reference to the WPF presentation namespace for XAML elements -->
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             <!-- Reference to the XAML namespace for XAML directives like x:Class -->
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             <!-- Specifies the startup window to display when the application launches -->
              StartupUri="MainWindow.xaml">
 </Application>
+<!-- Closing tag for the Application element -->
