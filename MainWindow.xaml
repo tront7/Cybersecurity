@@ -1,18 +1,11 @@
-<!-- Root window element for the main UI -->
+ <!-- Root window element for the main UI -->
 <Window x:Class="CybersecurityBot.MainWindow"
-        <!-- Default presentation namespace for WPF controls -->
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        <!-- XAML namespace for language features like x:Name -->
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        <!-- Window title shown in the title bar -->
         Title="🛡 Cybersecurity Awareness Bot"
-        <!-- Initial height and width of the window -->
         Height="750" Width="1100"
-        <!-- Minimum dimensions the window can be resized to -->
         MinHeight="600" MinWidth="800"
-        <!-- Start position centered on the screen -->
         WindowStartupLocation="CenterScreen"
-        <!-- Background color for the window -->
         Background="#0D1117">
 
     <!-- Resources shared across controls in this window -->
